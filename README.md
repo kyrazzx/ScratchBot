@@ -9,6 +9,7 @@ ScratchBot that interact with project comments and execute commands.
 
 ---
 ## Known issues
+- **[CRITICAL]** Permissions error.
 - Rate limit (investigating for a solution)
 - Keys must be str, int, float, bool or None, not User (not a critical error)
 

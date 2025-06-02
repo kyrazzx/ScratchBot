@@ -9,9 +9,13 @@ ScratchBot that interact with project comments and execute commands.
 
 ---
 ## Known issues
-- **[CRITICAL]** Permissions error.
 - Rate limit (investigating for a solution)
 - Keys must be str, int, float, bool or None, not User (not a critical error)
 
 ---
-# Currently under development...
+# WARNING!
+This bot is against **Scratch ToS** and may get your bot account **DELETED**.
+Use this script at your own risk.
+
+---
+# IF YOU WANNA CONTRIBUTE TO MAKE THIS PROJECT BETTER, FEEL FREE TO CONTRIBUTE!

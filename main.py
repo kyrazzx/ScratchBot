@@ -13,13 +13,14 @@ PASSWORD = "YOUR_BOT_PASSWORD" # Put your bot password
 PROJECT_ID = 123456789 # Put your real project ID that you wanna monitor
 DATABASE_FILE = "gift_db.json"
 SEEN_FILE = "seen_comments.json"
-CHECK_INTERVAL = 10
+CHECK_INTERVAL = 20
 
 try:
     session = scratch3.login(USERNAME, PASSWORD)
 except Exception as e:
     print(Fore.RED + f"Login failed, {e}")
     exit()
+
 project = session.connect_project(PROJECT_ID)
 
 print(f"Connected project: {project.title}")

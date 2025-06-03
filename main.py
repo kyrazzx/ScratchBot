@@ -17,8 +17,8 @@ CHECK_INTERVAL = 10
 session = scratch3.login(USERNAME, PASSWORD)
 project = session.connect_project(PROJECT_ID)
 
-print(f"Projet connecté : {project.title}")
-print("Bot en ligne...")
+print(f"Connected project: {project.title}")
+print("[✅] Bot online! | v1.1 | github.com/kyrazzx/ScratchBot")
 
 if os.path.exists(DATABASE_FILE):
     with open(DATABASE_FILE, "r") as f:
@@ -47,7 +47,7 @@ def reply(comment, content):
     try:
         comment.reply(content)
     except Exception as e:
-        print(f"Erreur en répondant au commentaire {comment.id}: {e}")
+        print(f"Error while trying to reply to the comment {comment.id}: {e}")
 
 def already_follows(username):
     try:
@@ -63,7 +63,7 @@ def follow_user(username):
         user.follow()
         return True
     except Exception as e:
-        print(f"Erreur lors du follow de {username}: {e}")
+        print(f"Error while trying to follow {username}: {e}")
         return False
 
 while True:
@@ -75,7 +75,7 @@ while True:
             seen_comments.add(comment.id)
 
             content = comment.content.strip()
-            author_obj = comment.author()  # appeler la méthode pour obtenir l'objet user
+            author_obj = comment.author()
             author = author_obj.username
 
             if content.lower() == "+follow":
@@ -118,6 +118,6 @@ while True:
 
         save_seen_comments()
     except Exception as e:
-        print("Erreur:", e)
+        print("Error:", e)
 
     time.sleep(CHECK_INTERVAL)

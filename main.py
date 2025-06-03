@@ -14,7 +14,11 @@ DATABASE_FILE = "gift_db.json"
 SEEN_FILE = "seen_comments.json"
 CHECK_INTERVAL = 10
 
-session = scratch3.login(USERNAME, PASSWORD)
+try:
+    session = scratch3.login(USERNAME, PASSWORD)
+except Exception as e:
+    print(f"Login failed, {e}")
+    exit()
 project = session.connect_project(PROJECT_ID)
 
 print(f"Connected project: {project.title}")

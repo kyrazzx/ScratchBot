@@ -13,13 +13,13 @@ ScratchBot that interact with project comments and execute commands.
 - Bot getting banned (still trying to figure out if this is a manual ban or automatic ban)
 
 ---
-# Latest test
+## Latest test
 The **latest** version of this script with the **latest** patchs was the **03/06/25** at **13:16**.
 
 Note: Everything was working well, no ban for the moment. No error encountered.
 
 ---
-# WARNING!
+## WARNING!
 This bot is against **Scratch ToS** and may get your bot account **DELETED**.
 Use this script at your own risk.
 

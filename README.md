@@ -15,6 +15,7 @@ ScratchBot that interact with project comments and execute commands.
 ---
 # Latest test
 The **latest** version of this script with the **latest** patchs was the **03/06/25** at **13:16**.
+
 Note: Everything was working well, no ban for the moment. No error encountered.
 
 ---

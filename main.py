@@ -1,4 +1,5 @@
 # ScratchBot v1.1 | Beta version
+from colorama import Fore
 import scratchattach as scratch3
 import time
 import json
@@ -17,12 +18,12 @@ CHECK_INTERVAL = 10
 try:
     session = scratch3.login(USERNAME, PASSWORD)
 except Exception as e:
-    print(f"Login failed, {e}")
+    print(Fore.RED + f"Login failed, {e}")
     exit()
 project = session.connect_project(PROJECT_ID)
 
 print(f"Connected project: {project.title}")
-print("[✅] Bot online! | v1.1 | github.com/kyrazzx/ScratchBot")
+print(Fore.GREEN + "[✅] Bot online! | v1.1 | github.com/kyrazzx/ScratchBot")
 
 if os.path.exists(DATABASE_FILE):
     with open(DATABASE_FILE, "r") as f:
@@ -51,7 +52,7 @@ def reply(comment, content):
     try:
         comment.reply(content)
     except Exception as e:
-        print(f"Error while trying to reply to the comment {comment.id}: {e}")
+        print(Fore.RED + f"Error while trying to reply to the comment {comment.id}: {e}")
 
 def already_follows(username):
     try:
@@ -67,7 +68,7 @@ def follow_user(username):
         user.follow()
         return True
     except Exception as e:
-        print(f"Error while trying to follow {username}: {e}")
+        print(Fore.RED + f"Error while trying to follow {username}: {e}")
         return False
 
 while True:
@@ -122,6 +123,5 @@ while True:
 
         save_seen_comments()
     except Exception as e:
-        print("Error:", e)
-
+        print(Fore.RED + "Error:", e)
     time.sleep(CHECK_INTERVAL)

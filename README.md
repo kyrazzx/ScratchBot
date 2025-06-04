@@ -20,6 +20,10 @@ The **latest** version of this script with the **latest** patchs was the **04/06
 Note: Everything was working well, no ban for the moment. No error encountered. Every new patchs are working very good.
 
 ---
+## Demo
+To try the **latest** demo project availabe, click [here](https://scratch.mit.edu/projects/1184173320/)!
+
+---
 ## WARNING!
 This bot is against **Scratch ToS** and may get your bot account **DELETED**.
 

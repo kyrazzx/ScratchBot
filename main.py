@@ -76,13 +76,17 @@ def reply(comment, content):
         comment.reply(content)
         return "ok"
     except Exception as e:
-        if "Forbidden" in str(e):
+        err_str = str(e)
+        if "Forbidden" in err_str:
             print(Fore.RED + f"🚫 Forbidden error on reply. Reconnecting...")
             reconnect()
             return "forbidden"
-        elif "isFlood" in str(e) or "rejected" in str(e):
+        elif "isFlood" in err_str or "rejected" in err_str:
             print(Fore.YELLOW + f"⏳ Flood error on reply {comment.id}")
             return "flood"
+        elif "Expecting value" in err_str:
+            print(Fore.YELLOW + f"⚠ JSON decode error on reply {comment.id} ignored, assuming success.")
+            return "ok"
         else:
             print(Fore.RED + f"❌ Error replying to {comment.id}: {e}")
             return "error"

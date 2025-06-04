@@ -1,6 +1,8 @@
 # ScratchBot
 ScratchBot that interact with project comments and execute commands.
 
+**Current version:** *v1.2*
+
 ---
 ## How to use
 1. Install ScratchAttach and Colorama (pip install scratchattach colorama)
@@ -9,18 +11,18 @@ ScratchBot that interact with project comments and execute commands.
 
 ---
 ## Known issues
-- Rate limit (investigating for a solution)
 - Bot getting banned (still trying to figure out if this is a manual ban or automatic ban)
 
 ---
 ## Latest test
-The **latest** version of this script with the **latest** patchs was the **03/06/25** at **13:16**.
+The **latest** version of this script with the **latest** patchs was the **04/06/25** at **13:02**.
 
-Note: Everything was working well, no ban for the moment. No error encountered.
+Note: Everything was working well, no ban for the moment. No error encountered. Every new patchs are working very good.
 
 ---
 ## WARNING!
 This bot is against **Scratch ToS** and may get your bot account **DELETED**.
+
 Use this script at your own risk.
 
 ---

@@ -11,8 +11,8 @@ from collections import deque
 USERNAME = "YOUR_BOT_USERNAME" # Put your bot username
 PASSWORD = "YOUR_BOT_PASSWORD" # Put your bot password
 PROJECT_ID = 1234567890 # Put your real project ID that you wanna monitor
-DATABASE_FILE = "gift_db.json"
-SEEN_FILE = "seen_comments.json"
+DATABASE_FILE = "gift.json"
+SEEN_FILE = "comments.json"
 CHECK_INTERVAL = 20
 COOLDOWN_BETWEEN_ACTIONS = 10
 MAX_RETRIES = 10

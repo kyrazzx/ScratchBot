@@ -1,4 +1,65 @@
-# ScratchBot v1.2 | Beta version
+# ScratchBot v1.3 | Beta version
+__version__ = "1.3"
+
+import requests, re, os, sys
+
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/kyrazzx/ScratchBot/main/main.py"
+LOCAL_FILE = os.path.abspath(__file__)
+
+def get_version_from_code(code):
+    match = re.search(r'__version__\s*=\s*["\']([\d\.]+)["\']', code)
+    return match.group(1) if match else None
+
+def extract_config_block(code):
+    match = re.search(r'(# === CONFIGURATION ===\n)(.*?)(\n# === SETUP ===)', code, re.DOTALL)
+    return (match.group(2).strip() if match else None), match.group(1) if match else "", match.group(3) if match else ""
+
+def replace_config_block(code, new_config, config_start, config_end):
+    pattern = r'(# === CONFIGURATION ===\n)(.*?)(\n# === SETUP ===)'
+    return re.sub(pattern, f"{config_start}{new_config}\n{config_end}", code, flags=re.DOTALL)
+
+def replace_version(code, version):
+    if '__version__' in code:
+        return re.sub(r'__version__\s*=\s*["\'].*?["\']', f'__version__ = "1.3.9"', code)
+    else:
+        return f'__version__ = "1.3.9"\n' + code
+
+def compare_versions(v1, v2):
+    def parse(v):
+        parts = [int(x) for x in v.split('.')]
+        while len(parts) < 3:
+            parts.append(0)
+        return parts
+    return parse(v1) < parse(v2) 
+
+def check_for_updates():
+    try:
+        with open(LOCAL_FILE, "r", encoding="utf-8") as f:
+            local_code = f.read()
+        local_version = get_version_from_code(local_code)
+        local_config, config_start, config_end = extract_config_block(local_code)
+        response = requests.get(GITHUB_RAW_URL)
+        if response.status_code == 200:
+            remote_code = response.text
+            remote_version = get_version_from_code(remote_code)
+            if remote_version and local_version and compare_versions(local_version, remote_version):
+                print(f"[⬆️] New version {remote_version} available (current: {local_version})")
+                if local_config:
+                    remote_code = replace_config_block(remote_code, local_config, config_start, config_end)
+                remote_code = replace_version(remote_code, remote_version)
+                with open(LOCAL_FILE, "w", encoding="utf-8") as f:
+                    f.write(remote_code)
+                print("[✅] Script updated! Restarting...")
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+            else:
+                print("[🆗] Already up to date.")
+        else:
+            print("[⚠️] Failed to fetch remote script.")
+    except Exception as e:
+        print(f"[❌] Auto-update error: {e}")
+
+check_for_updates()
+
 from colorama import Fore
 import scratchattach as scratch3
 import time

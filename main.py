@@ -186,9 +186,9 @@ def reconnect():
 # === MAIN ===
 while True:
     try:
-        comments = project.comments(limit=20)
+        comments = project.comments(limit=5)
         for comment in reversed(comments):
-            if comment.id not in seen_comments:
+            if comment.id not in seen_comments and comment.content.strip().startswith("+"):
                 seen_comments.add(comment.id)
                 comment_queue.append((comment, 0))
         if comment_queue:

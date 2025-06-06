@@ -11,7 +11,7 @@ ScratchBot that interact with project comments and execute commands.
 
 ---
 ## Known issues
-- Bot getting banned (still trying to figure out if this is a manual ban or automatic ban)
+**No known issues**
 
 ---
 ## Latest test

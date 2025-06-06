@@ -1,5 +1,5 @@
 # ScratchBot v1.3 | Beta version
-__version__ = "1.3"
+__version__ = "1.3.1"
 
 import requests, re, os, sys
 

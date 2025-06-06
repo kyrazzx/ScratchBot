@@ -1,7 +1,7 @@
 # ScratchBot
 ScratchBot that interact with project comments and execute commands.
 
-**Current version:** *v1.2*
+**Current version:** *v1.3*
 
 ---
 ## How to use
@@ -15,9 +15,9 @@ ScratchBot that interact with project comments and execute commands.
 
 ---
 ## Latest test
-The **latest** version of this script with the **latest** patchs was the **04/06/25** at **13:47**.
+The **latest** version of this script with the **latest** patchs was the **06/06/25** at **11:10**.
 
-Note: Everything was working well, no ban for the moment. No error encountered. Every new patchs are working very good.
+Note: Seems stable. May cause unexpected errors. Investing that later...
 
 ---
 ## Demo

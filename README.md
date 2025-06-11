@@ -1,13 +1,19 @@
 # ScratchBot
 ScratchBot that interact with project comments and execute commands.
 
-**Current version:** *v1.3.1*
+**Current version:** *v1.3.2*
 
 ---
 ## How to use
-1. Install ScratchAttach and Colorama (pip install scratchattach colorama)
-2. Edit the config into main.py
-3. Run "python3 main.py"
+1. Install ScratchAttach, Colorama and DotEnv (pip install scratchattach colorama python-dotenv).
+2. Create a ".env" file.
+3. Insert into the ".env" file:
+  ```
+  BOTUSERNAME=yourusername
+  BOTPASSWORD=yourpassword
+  BOTPROJECT=yourprojectid
+  ```
+4. Run "python3 main.py"
 
 ---
 ## Known issues

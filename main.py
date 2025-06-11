@@ -14,7 +14,6 @@ GITHUB_RAW_URL = "https://raw.githubusercontent.com/kyrazzx/ScratchBot/main/main
 LOCAL_FILE = os.path.abspath(__file__)
 
 # === AUTO UPDATE ===
-
 def getversioncode(code):
     match = re.search(r'__version__\s*=\s*["\']([\d\.]+)["\']', code)
     return match.group(1) if match else None
@@ -93,7 +92,7 @@ session = login()
 project = session.connect_project(PROJECT_ID)
 
 print(Fore.CYAN + f"Connected to project: {project.title}")
-print(Fore.GREEN + "[🤖] Bot online | v1.3.2 | github.com/kyrazzx/ScratchBot")
+print(Fore.GREEN + f"[🤖] Bot online |  v{__version__} | github.com/kyrazzx/ScratchBot")
 
 # === DB ===
 gift_db = {}

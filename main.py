@@ -92,7 +92,7 @@ session = login()
 project = session.connect_project(PROJECT_ID)
 
 print(Fore.CYAN + f"Connected to project: {project.title}")
-print(Fore.GREEN + f"[🤖] Bot online |  v{__version__} | github.com/kyrazzx/ScratchBot")
+print(Fore.GREEN + f"[🤖] Bot online | v{__version__} | github.com/kyrazzx/ScratchBot")
 
 # === DB ===
 gift_db = {}

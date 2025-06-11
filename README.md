@@ -17,7 +17,7 @@ ScratchBot that interact with project comments and execute commands.
 
 ---
 ## Known issues
-- Version code going from current version to "v1.x.9" when updating (happening on server/may be caused by temp memory)
+- Version code going from current version to "vX.X.9" when updating (happening on server/may be caused by temp memory)
 
 ---
 ## Latest test

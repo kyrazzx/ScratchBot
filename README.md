@@ -36,4 +36,4 @@ This bot is against **Scratch ToS** and may get your bot account **DELETED**.
 Use this script at your own risk.
 
 ---
-# IF YOU WANNA MAKE THIS PROJECT BETTER, FEEL FREE TO CONTRIBUTE!
+# Feel free to contribute to make this project better!

@@ -192,7 +192,7 @@ def is_safe_command(content):
 # === MAIN ===
 while True:
     try:
-        comments = project.comments(limit=5)
+        comments = project.comments(limit=10)
         for comment in reversed(comments):
             content = comment.content.strip()
             if comment.id in seen_comments or not content.startswith("+"):

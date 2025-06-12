@@ -27,7 +27,7 @@ Note: Seems stable. May cause unexpected errors.
 
 ---
 ## Demo
-To try the **latest** demo project availabe, click [here](https://scratch.mit.edu/projects/1184173320/)!
+To try the **latest** demo project availabe, click [here](https://scratch.mit.edu/projects/1187767540/)!
 
 ---
 ## WARNING!

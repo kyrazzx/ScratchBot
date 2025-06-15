@@ -32,7 +32,9 @@ def bootstrap_script():
             print("Please install it manually by running: pip install requests")
             print(f"Details: {e}")
             sys.exit(1)
+
     repo_zip_url = "https://github.com/kyrazzx/ScratchBot/archive/refs/heads/main.zip"
+
     try:
         print(f"[SETUP] Downloading repository from {repo_zip_url}...")
         response = requests.get(repo_zip_url, stream=True)
@@ -73,7 +75,6 @@ def bootstrap_script():
     except Exception as e:
         print(f"[ERROR] Failed to install all dependencies from requirements.txt.")
         print("You may need to run 'pip install -r requirements.txt' manually.")
-        print(f"Details: {e}")
     print("\n[SETUP] Installation complete! Restarting the bot now...")
     time.sleep(2)
     os.execv(sys.executable, [sys.executable] + sys.argv)
@@ -84,6 +85,7 @@ import logging
 import warnings
 import scratchattach
 from collections import deque
+
 import config
 import updater
 from database import Database
@@ -118,7 +120,7 @@ def main():
     comment_queue = deque()
     seen_comments_cache = set()
     last_db_save_time = time.time()
-
+    CHECK_INTERVAL = config.CHECK_INTERVAL if hasattr(config, 'CHECK_INTERVAL') else 20
     try:
         while True:
             new_comments = scratcher.get_comments()
@@ -132,23 +134,28 @@ def main():
                     logging.warning(f"Ignored suspicious command from {comment.author().username}: {comment.content}")
                     seen_comments_cache.add(comment.id)
                     continue
-                comment_queue.append((comment, 0))
+                comment_queue.append((comment, 0, None))
                 seen_comments_cache.add(comment.id)
             if comment_queue:
-                comment, retries = comment_queue.popleft()
+                comment, retries, pre_reply_message = comment_queue.popleft()
                 author = comment.author().username
-                logging.info(f"Processing command from {author}: {comment.content.strip()}")
-                reply_message = commands.process_command(comment, scratcher, db, config)
+                reply_message = ""
+                if pre_reply_message:
+                    logging.info(f"Retrying to send previous reply for comment {comment.id}: '{pre_reply_message}'")
+                    reply_message = pre_reply_message
+                else:
+                    logging.info(f"Processing command from {author}: {comment.content.strip()}")
+                    reply_message = commands.process_command(comment, scratcher, db, config)
                 result = scratcher.reply_to_comment(comment, reply_message)
                 if result in ("forbidden", "flood", "error"):
                     if retries < config.MAX_RETRIES:
-                        logging.warning(f"Requeuing comment {comment.id} (retry {retries + 1})")
-                        comment_queue.append((comment, retries + 1))
+                        logging.warning(f"Requeuing comment {comment.id} (retry {retries + 1}) with its reply.")
+                        comment_queue.append((comment, retries + 1, reply_message))
                     else:
                         logging.error(f"Skipping comment {comment.id} after {config.MAX_RETRIES} retries.")
                 time.sleep(config.COOLDOWN_BETWEEN_ACTIONS)
             else:
-                time.sleep(config.CHECK_INTERVAL)
+                time.sleep(CHECK_INTERVAL)
             if time.time() - last_db_save_time > config.SAVE_INTERVAL:
                 logging.info("Saving seen comments to database...")
                 db.add_seen_comments(seen_comments_cache)
@@ -160,8 +167,9 @@ def main():
         logging.error(f"An unexpected error occurred in main loop: {e}", exc_info=True)
     finally:
         logging.info("Final save of seen comments before shutdown...")
-        db.add_seen_comments(seen_comments_cache)
-        db.close()
+        if 'db' in locals() and db:
+            db.add_seen_comments(seen_comments_cache)
+            db.close()
         logging.info("Shutdown complete.")
 
 if __name__ == "__main__":

@@ -26,6 +26,14 @@ The **latest** version of this script with the **latest** patchs was the **11/06
 Note: Seems stable. May cause unexpected errors.
 
 ---
+## Next update ideas
+- Modul scripts
+- More commands
+- Security
+- Flexibility
+- More custom settings
+
+---
 ## Demo
 To try the **latest** demo project availabe, click [here](https://scratch.mit.edu/projects/1187767540/)!
 

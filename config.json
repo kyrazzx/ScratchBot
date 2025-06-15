@@ -1,0 +1,31 @@
+{
+    "bot_responses": {
+
+        "help_message": "Available commands: +help, +follow, +gift <username>",
+
+        "follow_already_following": "I'm already following you.",
+
+        "follow_success": "You are now followed by me! ✅",
+
+        "follow_fail": "An error occurred while trying to follow you. Please try again later.",
+
+        "gift_usage": "Incorrect usage. Try: +gift <username>",
+
+        "gift_invalid_username": "The username '{target}' is not valid.",
+
+        "gift_already_sent": "You have already sent your gift to someone.",
+
+        "gift_target_already_followed": "I'm already following {target}.",
+
+        "gift_success": "{target} is now followed thanks to you! 🎁",
+
+        "gift_fail": "Failed to follow {target}. Please check the username and try again.",
+
+        "gift_user_not_exist": "The user '{target}' does not seem to exist on Scratch.",
+
+        "unknown_command": "Unknown command. Type '+help' to see the list of available commands.",
+
+        "spam_cooldown": "You are sending commands too quickly. Please wait a moment."
+        
+    }
+}

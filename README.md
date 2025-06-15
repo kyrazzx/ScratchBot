@@ -1,4 +1,7 @@
 # ScratchBot
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)
+
 ScratchBot that interact with project comments and execute commands.
 
 **Current version:** *v1.3.2*

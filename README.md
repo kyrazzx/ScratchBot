@@ -61,7 +61,7 @@ To try the **latest** demo project available, click [here](https://scratch.mit.e
 
 ## Latest test
 
-The **latest** version of this script with the **latest** patchs was the **11/06/25** at **12:03**.
+The **latest** version of this script with the **latest** patchs was the **15/06/25** at **20:33**.
 
 Note: Seems stable. May cause unexpected errors.
 

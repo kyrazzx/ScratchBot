@@ -1,264 +1,168 @@
-# ScratchBot v1.3.9 | Beta version
-__version__ = "1.3.9"
+# ScratchBot v1.4.0
+__version__ = "1.4.0"
 
-import requests, re, os, sys
-import time, json, warnings
+import os
+import sys
+import time
+
+def bootstrap_script():
+    required_files = [
+        "commands.py", "config.py", "database.py", "scratch_handler.py",
+        "updater.py", "utils.py", "requirements.txt"
+    ]
+    files_are_present = all(os.path.exists(f) for f in required_files)
+    if files_are_present:
+        return
+    print("[SETUP] Essential files are missing. Attempting self-installation...")
+    print("[WARNING] This will download the latest version from GitHub and overwrite local files.")
+    time.sleep(2)
+
+    try:
+        import requests
+    except ImportError:
+        print("[SETUP] 'requests' library not found. Attempting to install it...")
+        try:
+            import subprocess
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            import requests
+            print("[SETUP] 'requests' installed successfully.")
+        except Exception as e:
+            print(f"[FATAL ERROR] Failed to install 'requests'.")
+            print("Please install it manually by running: pip install requests")
+            print(f"Details: {e}")
+            sys.exit(1)
+    repo_zip_url = "https://github.com/kyrazzx/ScratchBot/archive/refs/heads/main.zip"
+    try:
+        print(f"[SETUP] Downloading repository from {repo_zip_url}...")
+        response = requests.get(repo_zip_url, stream=True)
+        response.raise_for_status()
+        zip_content = response.content
+        print("[SETUP] Download complete.")
+    except Exception as e:
+        print(f"[FATAL ERROR] Failed to download the repository.")
+        print(f"Please download it manually from https://github.com/kyrazzx/ScratchBot")
+        print(f"Details: {e}")
+        sys.exit(1)
+    import zipfile
+    import io
+
+    try:
+        print("[SETUP] Extracting files...")
+        with zipfile.ZipFile(io.BytesIO(zip_content)) as zf:
+            root_folder = zf.namelist()[0]
+            for member in zf.infolist():
+                destination_path = member.filename.replace(root_folder, "", 1)
+                if not destination_path:
+                    continue
+                zf.extract(member, path=".")
+                if os.path.exists(destination_path):
+                    os.remove(destination_path)
+                os.rename(member.filename, destination_path)
+        print("[SETUP] Files extracted successfully.")
+    except Exception as e:
+        print(f"[FATAL ERROR] Failed to extract files.")
+        print(f"Please extract the repository manually.")
+        print(f"Details: {e}")
+        sys.exit(1)
+    print("[SETUP] Installing required packages...")
+    try:
+        import subprocess
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        print("[SETUP] All dependencies installed.")
+    except Exception as e:
+        print(f"[ERROR] Failed to install all dependencies from requirements.txt.")
+        print("You may need to run 'pip install -r requirements.txt' manually.")
+        print(f"Details: {e}")
+    print("\n[SETUP] Installation complete! Restarting the bot now...")
+    time.sleep(2)
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
+bootstrap_script()
+
+import logging
+import warnings
+import scratchattach
 from collections import deque
-from colorama import Fore
-import scratchattach as scratch3
-from dotenv import load_dotenv
+import config
+import updater
+from database import Database
+from scratch_handler import ScratchHandler
+from utils import is_safe_command
+import commands
 
-load_dotenv()
+warnings.filterwarnings('ignore', category=scratchattach.LoginDataWarning)
 
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/kyrazzx/ScratchBot/main/main.py"
-LOCAL_FILE = os.path.abspath(__file__)
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.FileHandler("bot.log"),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
 
-# === AUTO UPDATE ===
-def getversioncode(code):
-    match = re.search(r'__version__\s*=\s*["\']([\d\.]+)["\']', code)
-    return match.group(1) if match else None
+def main():
+    setup_logging()
+    logging.info(f"Starting ScratchBot v{__version__}")
+    updater.check_for_updates()
+    if not os.path.exists("config.json") or not os.path.exists(".env"):
+        logging.critical("Configuration files (.env, config.json) not found.")
+        logging.critical("Please create them by following the instructions in README.md.")
+        sys.exit(1)
+    db = Database(config.DATABASE_FILE)
+    scratcher = ScratchHandler(config.USERNAME, config.PASSWORD)
+    if not scratcher.connect_to_project(config.PROJECT_ID):
+        sys.exit(1)
+    comment_queue = deque()
+    seen_comments_cache = set()
+    last_db_save_time = time.time()
 
-def extcfgblock(code):
-    match = re.search(r'(# === CONFIGURATION ===\n)(.*?)(\n# === SETUP ===)', code, re.DOTALL)
-    return (match.group(2).strip() if match else None), match.group(1) if match else "", match.group(3) if match else ""
-
-def repcfgblock(code, new_config, config_start, config_end):
-    pattern = r'(# === CONFIGURATION ===\n)(.*?)(\n# === SETUP ===)'
-    return re.sub(pattern, f"{config_start}{new_config}\n{config_end}", code, flags=re.DOTALL)
-
-def replace_version(code, version):
-    return re.sub(r'__version__\s*=\s*["\'].*?["\']', f'__version__ = "{version}"', code)
-
-def compare_versions(v1, v2):
-    def parse(v): return list(map(int, v.split("."))) + [0]*(3 - len(v.split(".")))
-    return parse(v1) < parse(v2)
-
-def check_for_updates():
     try:
-        with open(LOCAL_FILE, "r", encoding="utf-8") as f:
-            local_code = f.read()
-        local_version = getversioncode(local_code)
-        local_config, config_start, config_end = extcfgblock(local_code)
-        response = requests.get(GITHUB_RAW_URL)
-        if response.status_code == 200:
-            remote_code = response.text
-            remote_version = getversioncode(remote_code)
-            if remote_version and local_version and compare_versions(local_version, remote_version):
-                if not compare_versions(remote_version, "1.4.0"):
-                    print(f"[⬆️] New version {remote_version} available (current: {local_version})")
-                    print("📦 This new version break the current update system.")
-                    print("🛠️ Please download manually the update on:")
-                    print("👉 https://github.com/kyrazzx/ScratchBot")
-                    return
-                print(f"[⬆️] New version {remote_version} available (current: {local_version})")
-                if local_config:
-                    remote_code = repcfgblock(remote_code, local_config, config_start, config_end)
-                remote_code = replace_version(remote_code, remote_version)
-                with open(LOCAL_FILE, "w", encoding="utf-8") as f:
-                    f.write(remote_code)
-                print("[✅] Script updated! Restarting...")
-                os.execv(sys.executable, [sys.executable] + sys.argv)
-            else:
-                print("[🆗] Already up to date.")
-        else:
-            print("[⚠️] Failed to fetch remote script.")
-    except Exception as e:
-        print(f"[❌] Auto-update error: {e}")
-
-check_for_updates()
-
-# === CONFIG ===
-USERNAME = os.getenv("BOTUSERNAME")
-PASSWORD = os.getenv("BOTPASSWORD")
-PROJECT_ID = os.getenv("BOTPROJECT")
-DATABASE_FILE = "gift.json"
-SEEN_FILE = "comments.json"
-CHECK_INTERVAL = 20
-COOLDOWN_BETWEEN_ACTIONS = 10
-MAX_RETRIES = 10
-
-# === SETUP ===
-warnings.filterwarnings('ignore', category=scratch3.LoginDataWarning)
-
-if not USERNAME or not PASSWORD:
-    print(Fore.RED + "❌ Username or password missing. Define them in your .env file.")
-    sys.exit(1)
-
-def login():
-    try:
-        session = scratch3.login(USERNAME, PASSWORD)
-        print(Fore.GREEN + "[✅] Login successful.")
-        return session
-    except Exception as e:
-        print(Fore.RED + f"[❌] Login failed: {e}")
-        time.sleep(10)
-        return login()
-
-session = login()
-project = session.connect_project(PROJECT_ID)
-
-print(Fore.CYAN + f"Connected to project: {project.title}")
-print(Fore.GREEN + f"[🤖] Bot online | v{__version__} | github.com/kyrazzx/ScratchBot")
-
-# === DB ===
-gift_db = {}
-if os.path.exists(DATABASE_FILE):
-    try:
-        with open(DATABASE_FILE, "r") as f:
-            gift_db = json.load(f)
-    except Exception:
-        gift_db = {}
-
-seen_comments = set()
-if os.path.exists(SEEN_FILE):
-    try:
-        with open(SEEN_FILE, "r") as f:
-            seen_comments = set(json.load(f))
-    except Exception:
-        seen_comments = set()
-
-def save_db():
-    with open(DATABASE_FILE, "w") as f:
-        json.dump(gift_db, f)
-
-def save_seen_comments():
-    with open(SEEN_FILE, "w") as f:
-        json.dump(list(seen_comments), f)
-
-# === QUEUE ===
-comment_queue = deque()
-
-def requeue(comment, retries):
-    retries += 1
-    if retries < MAX_RETRIES:
-        print(Fore.YELLOW + f"🔁 Requeuing comment {comment.id} (retry {retries})")
-        comment_queue.append((comment, retries))
-    else:
-        print(Fore.RED + f"⚠ Skipping comment {comment.id} after {MAX_RETRIES} retries.")
-
-def reply(comment, content):
-    try:
-        comment.reply(content)
-        return "ok"
-    except Exception as e:
-        err = str(e)
-        if "Forbidden" in err:
-            print(Fore.RED + "🚫 Forbidden error, reconnecting...")
-            reconnect()
-            return "forbidden"
-        elif "flood" in err or "rejected" in err:
-            print(Fore.YELLOW + f"⏳ Flood error on {comment.id}")
-            return "flood"
-        elif "Expecting value" in err:
-            print(Fore.YELLOW + f"⚠ JSON decode error on {comment.id}, assuming success.")
-            return "ok"
-        else:
-            print(Fore.RED + f"❌ Unexpected error on reply: {e}")
-            return "error"
-
-def already_follows(username):
-    try:
-        user = session.connect_user(USERNAME)
-        return username in user.following()
-    except:
-        return False
-
-def follow_user(username):
-    try:
-        if not is_valid_username(username):
-            print(Fore.RED + f"⚠ Invalid username: {username}")
-            return False
-        user = session.connect_user(username)
-        user.follow()
-        return True
-    except Exception as e:
-        print(Fore.RED + f"❌ Follow failed: {e}")
-        if "Forbidden" in str(e):
-            reconnect()
-        return False
-
-def reconnect():
-    global session, project
-    try:
-        session = login()
-        project = session.connect_project(PROJECT_ID)
-        print(Fore.GREEN + "[🔄] Reconnected successfully.")
-    except Exception as e:
-        print(Fore.RED + f"[❌] Reconnection failed: {e}")
-        time.sleep(30)
-        reconnect()
-
-# === SECURITY (avoid injection) ===
-def is_valid_username(name):
-    return re.match(r"^[a-zA-Z0-9_\-]{3,20}$", name) is not None
-
-def is_safe_command(content):
-    return re.match(r'^\+\w+(\s[\w\-]{3,20})?$', content.strip()) is not None
-
-# === MAIN ===
-while True:
-    try:
-        comments = project.comments(limit=10)
-        for comment in reversed(comments):
-            content = comment.content.strip()
-            if comment.id in seen_comments or not content.startswith("+"):
-                continue
-            if not is_safe_command(content):
-                print(Fore.RED + f"🚫 Ignored suspicious comment: {content}")
-                seen_comments.add(comment.id)
-                save_seen_comments()
-                continue
-            seen_comments.add(comment.id)
-            comment_queue.append((comment, 0))
-        if comment_queue:
-            comment, retries = comment_queue.popleft()
-            content = comment.content.strip()
-            author = comment.author().username
-            print(Fore.BLUE + f"📨 Handling comment {comment.id} by {author} | Retry {retries}")
-            result = "ok"
-            if content.lower() == "+follow":
-                if already_follows(author):
-                    result = reply(comment, "I already follow you.")
-                else:
-                    if follow_user(author):
-                        time.sleep(3)
-                        result = reply(comment, "You are now followed by me!")
+        while True:
+            new_comments = scratcher.get_comments()
+            for comment in reversed(new_comments):
+                if comment.id in seen_comments_cache or not comment.content.startswith("+"):
+                    continue
+                if db.is_comment_seen(comment.id):
+                    seen_comments_cache.add(comment.id)
+                    continue
+                if not is_safe_command(comment.content):
+                    logging.warning(f"Ignored suspicious command from {comment.author().username}: {comment.content}")
+                    seen_comments_cache.add(comment.id)
+                    continue
+                comment_queue.append((comment, 0))
+                seen_comments_cache.add(comment.id)
+            if comment_queue:
+                comment, retries = comment_queue.popleft()
+                author = comment.author().username
+                logging.info(f"Processing command from {author}: {comment.content.strip()}")
+                reply_message = commands.process_command(comment, scratcher, db, config)
+                result = scratcher.reply_to_comment(comment, reply_message)
+                if result in ("forbidden", "flood", "error"):
+                    if retries < config.MAX_RETRIES:
+                        logging.warning(f"Requeuing comment {comment.id} (retry {retries + 1})")
+                        comment_queue.append((comment, retries + 1))
                     else:
-                        result = reply(comment, "Follow failed.")
-            elif content.lower().startswith("+gift "):
-                parts = content.split()
-                if len(parts) != 2:
-                    result = reply(comment, "Usage: +gift username")
-                else:
-                    target = parts[1]
-                    if not is_valid_username(target):
-                        result = reply(comment, "Invalid username format.")
-                    elif author in gift_db:
-                        result = reply(comment, "You already sent a gift.")
-                    else:
-                        try:
-                            session.connect_user(target)
-                            if already_follows(target):
-                                result = reply(comment, f"{target} is already followed.")
-                            else:
-                                if follow_user(target):
-                                    time.sleep(3)
-                                    result = reply(comment, f"{target} is now followed.")
-                                    if result == "ok":
-                                        gift_db[author] = target
-                                        save_db()
-                                else:
-                                    result = reply(comment, "Failed to follow user.")
-                        except:
-                            result = reply(comment, "User does not exist.")
+                        logging.error(f"Skipping comment {comment.id} after {config.MAX_RETRIES} retries.")
+                time.sleep(config.COOLDOWN_BETWEEN_ACTIONS)
             else:
-                result = reply(comment, "Unknown command.")
-            if result in ("forbidden", "flood", "error"):
-                requeue(comment, retries)
-            save_seen_comments()
-            time.sleep(COOLDOWN_BETWEEN_ACTIONS)
-        else:
-            time.sleep(CHECK_INTERVAL)
+                time.sleep(config.CHECK_INTERVAL)
+            if time.time() - last_db_save_time > config.SAVE_INTERVAL:
+                logging.info("Saving seen comments to database...")
+                db.add_seen_comments(seen_comments_cache)
+                seen_comments_cache.clear()
+                last_db_save_time = time.time()
+    except KeyboardInterrupt:
+        logging.info("Bot shutting down by user request.")
     except Exception as e:
-        print(Fore.RED + f"[‼️] Runtime error: {e}")
-        time.sleep(CHECK_INTERVAL)
+        logging.error(f"An unexpected error occurred in main loop: {e}", exc_info=True)
+    finally:
+        logging.info("Final save of seen comments before shutdown...")
+        db.add_seen_comments(seen_comments_cache)
+        db.close()
+        logging.info("Shutdown complete.")
+
+if __name__ == "__main__":
+    main()

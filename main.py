@@ -1,5 +1,5 @@
-# ScratchBot v1.3.2 | Beta version
-__version__ = "1.3.2"
+# ScratchBot v1.3.9 | Beta version
+__version__ = "1.3.9"
 
 import requests, re, os, sys
 import time, json, warnings
@@ -44,6 +44,12 @@ def check_for_updates():
             remote_code = response.text
             remote_version = getversioncode(remote_code)
             if remote_version and local_version and compare_versions(local_version, remote_version):
+                if not compare_versions(remote_version, "1.4.0"):
+                    print(f"[⬆️] New version {remote_version} available (current: {local_version})")
+                    print("📦 This new version break the current update system.")
+                    print("🛠️ Please download manually the update on:")
+                    print("👉 https://github.com/kyrazzx/ScratchBot")
+                    return
                 print(f"[⬆️] New version {remote_version} available (current: {local_version})")
                 if local_config:
                     remote_code = repcfgblock(remote_code, local_config, config_start, config_end)

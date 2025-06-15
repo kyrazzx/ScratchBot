@@ -4,7 +4,7 @@
 
 ScratchBot that interact with project comments and execute commands.
 
-**Current version:** *v1.3.2*
+**Current version:** *v1.3.9*
 
 ---
 ## How to use

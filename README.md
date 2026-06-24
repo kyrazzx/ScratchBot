@@ -55,7 +55,7 @@ python main.py
 ---
 
 ## Demo
-To try the **latest** demo project available, click [here](https://scratch.mit.edu/projects/1218034829)!
+To try the **latest** demo project available, click [here](https://scratch.mit.edu/projects/1334942892/)!
 
 ---
 
